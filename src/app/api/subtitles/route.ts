@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ subtitles: [] });
   }
 
-  const serverBaseUrl = process.env.AIOSTREAMS_BASE_URL?.trim();
+  const serverBaseUrl = (process.env.STREAM_PROVIDER_URL || process.env.AIOSTREAMS_BASE_URL)?.trim();
   const customHeader = request.headers.get("x-custom-stream-url");
   const baseUrl = customHeader?.trim() || serverBaseUrl;
 

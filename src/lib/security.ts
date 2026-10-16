@@ -2,6 +2,7 @@ import crypto from "crypto";
 
 const SECRET =
   process.env.STREAM_PROXY_SECRET ||
+  process.env.STREAM_PROVIDER_URL ||
   process.env.AIOSTREAMS_BASE_URL ||
   "neomovie_internal_vault_secure_stream_cipher_key_2026";
 

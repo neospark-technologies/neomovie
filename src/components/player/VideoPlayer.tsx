@@ -15,6 +15,8 @@ import {
   Subtitles,
   Square,
   SkipForward,
+  RotateCcw,
+  RotateCw,
 } from "lucide-react";
 import Hls from "hls.js";
 import { saveWatchProgress } from "@/lib/storage";
@@ -62,6 +64,8 @@ export function VideoPlayer({
 
   const [playerMode, setPlayerMode] = useState<"debrid" | "embed">("debrid");
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false);
+  const [seekFeedback, setSeekFeedback] = useState<{ type: "-10" | "+10"; id: number } | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
@@ -76,6 +80,18 @@ export function VideoPlayer({
   const [subtitles, setSubtitles] = useState<SubtitleTrack[]>([]);
   const [selectedSub, setSelectedSub] = useState<string>("off");
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const skipTime = (amount: number) => {
+    const video = videoRef.current;
+    if (!video) return;
+    const target = Math.max(0, Math.min(video.duration || 0, video.currentTime + amount));
+    video.currentTime = target;
+    setCurrentTime(target);
+    setIsBuffering(true);
+    setSeekFeedback({ type: amount > 0 ? "+10" : "-10", id: Date.now() });
+    setTimeout(() => setSeekFeedback(null), 850);
+  };
 
   // Stop all active playback (audio and video) immediately
   const handleStopAll = () => {
@@ -137,6 +153,36 @@ export function VideoPlayer({
       })
       .catch((err) => console.warn("Failed to load subtitles", err));
   }, [imdbId, mediaType, season, episode]);
+
+  // Keyboard navigation & playback shortcuts (Space, ArrowLeft/Right for 10s skip)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const active = document.activeElement;
+      if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || (active as HTMLElement).isContentEditable)) {
+        return;
+      }
+
+      if (e.key === "ArrowLeft" || e.key === "j" || e.key === "J") {
+        e.preventDefault();
+        skipTime(-10);
+      } else if (e.key === "ArrowRight" || e.key === "l" || e.key === "L") {
+        e.preventDefault();
+        skipTime(10);
+      } else if (e.key === " " || e.key === "k" || e.key === "K") {
+        e.preventDefault();
+        togglePlay();
+      } else if (e.key === "f" || e.key === "F") {
+        e.preventDefault();
+        toggleFullscreen();
+      } else if (e.key === "m" || e.key === "M") {
+        e.preventDefault();
+        toggleMute();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  });
 
   const getAbsoluteStreamUrl = (url: string) => {
     if (!url) return "";
@@ -231,6 +277,28 @@ export function VideoPlayer({
     } else {
       video.pause();
       setIsPlaying(false);
+    }
+  };
+
+  const handleVideoClick = (e: React.MouseEvent<HTMLVideoElement>) => {
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+      // Double click detected: seek left (-10s) or right (+10s) or fullscreen center
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      if (clickX < rect.width * 0.38) {
+        skipTime(-10);
+      } else if (clickX > rect.width * 0.62) {
+        skipTime(10);
+      } else {
+        toggleFullscreen();
+      }
+    } else {
+      clickTimeoutRef.current = setTimeout(() => {
+        clickTimeoutRef.current = null;
+        togglePlay();
+      }, 250);
     }
   };
 
@@ -423,20 +491,29 @@ export function VideoPlayer({
             ref={videoRef}
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}
-            onPlay={() => setIsPlaying(true)}
+            onWaiting={() => setIsBuffering(true)}
+            onSeeking={() => setIsBuffering(true)}
+            onSeeked={() => setIsBuffering(false)}
+            onCanPlay={() => setIsBuffering(false)}
+            onPlaying={() => {
+              setIsPlaying(true);
+              setIsBuffering(false);
+            }}
             onPause={() => setIsPlaying(false)}
             onEnded={() => {
               setIsPlaying(false);
+              setIsBuffering(false);
               if (hasNextEpisode && onNextEpisode) {
                 onNextEpisode();
               }
             }}
             onError={() => {
+              setIsBuffering(false);
               setPlaybackError(
                 "This format (.mkv / DTS / HEVC) requires external player (VLC/MPV), or switch to Web Cinema."
               );
             }}
-            onClick={togglePlay}
+            onClick={handleVideoClick}
             poster={poster}
             className="w-full h-full object-contain cursor-pointer"
             playsInline
@@ -453,6 +530,39 @@ export function VideoPlayer({
               />
             ))}
           </video>
+
+          {/* Small sleek loading indicator when buffering or seeking/forwarding */}
+          {isBuffering && !playbackError && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/75 backdrop-blur-md border border-zinc-700/80 text-white text-xs font-medium shadow-2xl">
+                <div className="w-3.5 h-3.5 rounded-full border-2 border-zinc-400 border-t-white animate-spin" />
+                <span className="text-[11px] font-medium tracking-wide text-zinc-200">Loading...</span>
+              </div>
+            </div>
+          )}
+
+          {/* +10s / -10s visual seek feedback */}
+          {seekFeedback && (
+            <div
+              className={`absolute inset-y-0 flex items-center pointer-events-none z-20 ${
+                seekFeedback.type === "+10" ? "right-8 sm:right-16" : "left-8 sm:left-16"
+              }`}
+            >
+              <div className="flex flex-col items-center gap-1 px-4 py-2.5 rounded-2xl bg-black/85 backdrop-blur-md border border-zinc-700 text-white shadow-2xl">
+                {seekFeedback.type === "+10" ? (
+                  <>
+                    <RotateCw className="w-5 h-5 text-white" />
+                    <span className="text-xs font-bold font-mono tracking-wider text-white">+10s</span>
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-5 h-5 text-white" />
+                    <span className="text-xs font-bold font-mono tracking-wider text-white">-10s</span>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Fallback Notice for Unsupported Codec Streams */}
           {playbackError && (
@@ -521,13 +631,33 @@ export function VideoPlayer({
 
               {/* Controls row */}
               <div className="flex items-center justify-between text-white text-xs">
-                {/* Left: Play/Pause, Volume, Time, Next Episode */}
-                <div className="flex items-center gap-3 sm:gap-4">
+                {/* Left: Play/Pause, -10s, +10s, Volume, Time, Next Episode */}
+                <div className="flex items-center gap-2 sm:gap-3">
                   <button
                     onClick={togglePlay}
                     className="p-1 rounded text-white hover:text-zinc-300 transition-colors"
                   >
                     {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
+                  </button>
+
+                  {/* Rewind 10s */}
+                  <button
+                    onClick={() => skipTime(-10)}
+                    className="p-1 rounded text-zinc-300 hover:text-white transition-colors relative flex items-center justify-center group"
+                    title="Rewind 10s (← or J)"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    <span className="absolute -bottom-2 text-[8px] font-mono text-zinc-400 group-hover:text-white leading-none">10</span>
+                  </button>
+
+                  {/* Forward 10s */}
+                  <button
+                    onClick={() => skipTime(10)}
+                    className="p-1 rounded text-zinc-300 hover:text-white transition-colors relative flex items-center justify-center group mr-1"
+                    title="Forward 10s (→ or L)"
+                  >
+                    <RotateCw className="w-4 h-4" />
+                    <span className="absolute -bottom-2 text-[8px] font-mono text-zinc-400 group-hover:text-white leading-none">10</span>
                   </button>
 
                   {hasNextEpisode && onNextEpisode && (

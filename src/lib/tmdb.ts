@@ -123,7 +123,7 @@ export function resolveLibraryMeta(rawName: string, description?: string): {
 }
 
 export async function getTorboxItems(): Promise<MediaItem[]> {
-  const baseUrl = process.env.AIOSTREAMS_BASE_URL?.trim();
+  const baseUrl = (process.env.STREAM_PROVIDER_URL || process.env.AIOSTREAMS_BASE_URL)?.trim();
   if (!baseUrl) return [];
   try {
     const catalogUrl = `${baseUrl.replace(/\/manifest\.json$/, "")}/catalog/library/ae7791b.aiostreams::library.torbox.json`;
@@ -840,7 +840,7 @@ export async function getMediaDetails(id: string | number, type: "movie" | "tv" 
 
   // 2. If it's a TorBox library item
   if (strId.includes("library.torbox")) {
-    const baseUrl = process.env.AIOSTREAMS_BASE_URL?.trim();
+    const baseUrl = (process.env.STREAM_PROVIDER_URL || process.env.AIOSTREAMS_BASE_URL)?.trim();
     if (baseUrl) {
       try {
         const res = await fetch(`${baseUrl.replace(/\/manifest\.json$/, "")}/meta/library/${strId}.json`, {

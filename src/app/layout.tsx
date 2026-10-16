@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NeoMovie — Cinema & Stream Aggregator",
+  title: "NeoMovie - Cinema & Stream Aggregator",
   description: "High-performance cinema streaming platform. Discover movies, series, and anime in HD.",
 };
 

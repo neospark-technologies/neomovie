@@ -288,23 +288,25 @@ export async function GET(request: NextRequest) {
         };
       });
 
-    // Priority sorting: Default priority to 1080p (high browser compatibility, no decoding limit)
-    // while keeping 4K available in the list for manual selection or external player
+    // Priority sorting: Heavily prioritize browser-native streams (MP4, AAC, 1080p)
+    // to prevent browser decoding errors, while keeping high-bitrate 4K/Remux available
     streams.sort((a, b) => {
       const getScore = (item: StreamItem) => {
         const p = item.parsed || {};
         let score = 0;
+        if (p.isMp4) score += 2500;
+        if (p.audio === "AAC") score += 1200;
+
         if (p.resolution === "1080p") score += 1000;
         else if (p.resolution === "720p") score += 600;
         else if (p.resolution === "4K") score += 300;
         else score += 100;
 
-        if (p.isMp4) score += 200;
         if (p.quality === "WEB-DL" || p.quality === "WEBRip") score += 150;
         if (p.quality === "BluRay") score += 100;
-        if (/remux/i.test(p.quality || "")) score -= 80;
-        if (p.audio === "TrueHD" || p.audio === "DTS-HD") score -= 100;
-        if (p.audio === "AAC" || p.audio === "DD+" || p.audio === "AC3") score += 50;
+        if (/remux/i.test(p.quality || "")) score -= 200;
+        if (p.audio === "TrueHD" || p.audio === "DTS-HD") score -= 300;
+        if (p.audio === "DD+" || p.audio === "AC3") score += 50;
 
         return score;
       };

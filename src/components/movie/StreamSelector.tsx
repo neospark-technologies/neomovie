@@ -66,12 +66,13 @@ export function StreamSelector({
         if (data.streams && data.streams.length > 0) {
           setStreams(data.streams);
           if (!selectedStreamUrl) {
-            // Prioritize 1080p browser-compatible streams by default to avoid decoding limit errors
+            // Prioritize browser-compatible streams by default to avoid decoding limit errors
             const preferred =
+              data.streams.find((s: StreamItem) => s.parsed?.isMp4 && s.parsed?.audio === "AAC") ||
+              data.streams.find((s: StreamItem) => s.parsed?.isMp4) ||
               data.streams.find((s: StreamItem) => s.parsed?.resolution === "1080p" && (s.parsed?.isMp4 || s.parsed?.quality === "WEB-DL")) ||
               data.streams.find((s: StreamItem) => s.parsed?.resolution === "1080p") ||
               data.streams.find((s: StreamItem) => s.parsed?.resolution === "720p") ||
-              data.streams.find((s: StreamItem) => s.parsed?.isMp4) ||
               data.streams[0];
             if (onSelectStream && preferred) {
               onSelectStream(preferred);

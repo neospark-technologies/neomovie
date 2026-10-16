@@ -32,7 +32,7 @@ export function ExploreClient({
 
   const [activeType, setActiveType] = useState<string>(typeParam);
   const [searchQuery, setSearchQuery] = useState<string>(queryParam);
-  const [items, setItems] = useState<MediaItem[]>([]);
+  const [searchResults, setSearchResults] = useState<MediaItem[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
@@ -43,56 +43,62 @@ export function ExploreClient({
     setSearchQuery(queryParam);
   }, [queryParam]);
 
+  const getCategoryItems = (type: string): MediaItem[] => {
+    switch (type) {
+      case "indian":
+        return initialIndian || [];
+      case "torbox":
+        return initialTorbox || [];
+      case "movie":
+        return [...(initialIndian || []), ...(initialMovies || [])];
+      case "tv":
+        return initialTV || [];
+      case "anime":
+        return initialAnime || [];
+      case "all":
+      default:
+        return [...(initialIndian || []), ...(initialTrending || [])];
+    }
+  };
+
   useEffect(() => {
-    if (searchQuery.trim()) {
-      setIsSearching(true);
-      const timer = setTimeout(async () => {
-        try {
-          const results = await searchCatalog(searchQuery);
-          setItems(results);
-        } catch {
-          // Keep current
-        } finally {
-          setIsSearching(false);
-        }
-      }, 300);
-      return () => clearTimeout(timer);
+    if (!searchQuery.trim()) {
+      setSearchResults(null);
+      setIsSearching(false);
+      return;
     }
 
-    if (activeType === "indian") {
-      setItems(initialIndian);
-    } else if (activeType === "torbox") {
-      setItems(initialTorbox);
-    } else if (activeType === "movie") {
-      setItems(initialIndian.concat(initialMovies));
-    } else if (activeType === "tv") {
-      setItems(initialTV);
-    } else if (activeType === "anime") {
-      setItems(initialAnime);
-    } else {
-      setItems(initialIndian.concat(initialTrending));
-    }
-  }, [
-    activeType,
-    searchQuery,
-    initialTrending,
-    initialMovies,
-    initialTV,
-    initialAnime,
-    initialIndian,
-    initialTorbox,
-  ]);
+    setIsSearching(true);
+    const timer = setTimeout(async () => {
+      try {
+        const results = await searchCatalog(searchQuery);
+        setSearchResults(results);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const handleTypeSelect = (type: string) => {
     setActiveType(type);
     setSearchQuery("");
-    router.push(`/explore?type=${type}`);
+    setSearchResults(null);
+    router.push(`/explore?type=${type}`, { scroll: false });
   };
 
   const handleClearSearch = () => {
     setSearchQuery("");
-    router.push(`/explore?type=${activeType}`);
+    setSearchResults(null);
+    router.push(`/explore?type=${activeType}`, { scroll: false });
   };
+
+  const displayItems = searchQuery.trim()
+    ? (searchResults || [])
+    : getCategoryItems(activeType);
 
   const categories = [
     { id: "all", label: "All" },
@@ -158,9 +164,9 @@ export function ExploreClient({
           <div className="py-20 flex justify-center">
             <div className="w-6 h-6 rounded-full border-2 border-zinc-500 border-t-white animate-spin" />
           </div>
-        ) : items.length > 0 ? (
+        ) : displayItems.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {items.map((item, index) => (
+            {displayItems.map((item, index) => (
               <MovieCard key={`${item.id}-${index}`} item={item} priority={index < 6} />
             ))}
           </div>

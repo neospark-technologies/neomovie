@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Play, Bookmark, Film, Check } from "lucide-react";
 import { MediaItem } from "@/types/movie";
-import { getPosterUrl } from "@/lib/tmdb";
+import { getPosterUrl, getBackdropUrl, TMDB_TO_IMDB } from "@/lib/tmdb";
 import { isInWatchlist, addToWatchlist, removeFromWatchlist } from "@/lib/storage";
 
 interface MovieCardProps {
@@ -14,14 +14,17 @@ interface MovieCardProps {
 
 export function MovieCard({ item, priority = false }: MovieCardProps) {
   const [inWatchlist, setInWatchlist] = useState(false);
-  const [triedMetahub, setTriedMetahub] = useState(false);
-  const [imgError, setImgError] = useState(false);
+  const [candidateIndex, setCandidateIndex] = useState(0);
 
   useEffect(() => {
     setInWatchlist(isInWatchlist(item.id));
     const handleUpdate = () => setInWatchlist(isInWatchlist(item.id));
     window.addEventListener("neomovie-watchlist-updated", handleUpdate);
     return () => window.removeEventListener("neomovie-watchlist-updated", handleUpdate);
+  }, [item.id]);
+
+  useEffect(() => {
+    setCandidateIndex(0);
   }, [item.id]);
 
   const handleWatchlistToggle = (e: React.MouseEvent) => {
@@ -39,25 +42,41 @@ export function MovieCard({ item, priority = false }: MovieCardProps) {
   const isSeries = item.media_type === "tv" || item.media_type === "series" || item.media_type === "anime";
   const detailUrl = isSeries ? `/series/${item.id}` : `/movie/${item.id}`;
 
-  const imdbId = item.imdb_id || (typeof item.id === "string" && item.id.startsWith("tt") ? item.id : undefined);
+  const imdbId =
+    item.imdb_id ||
+    (typeof item.id === "string" && item.id.startsWith("tt") ? item.id : undefined) ||
+    TMDB_TO_IMDB[String(item.id)];
 
-  let currentPosterUrl: string | null = null;
-  if (!imgError) {
-    if (triedMetahub && imdbId) {
-      currentPosterUrl = `https://images.metahub.space/poster/small/${imdbId}/img`;
-    } else if (item.poster_path) {
-      currentPosterUrl = getPosterUrl(item.poster_path, "w500");
-    } else if (imdbId) {
-      currentPosterUrl = `https://images.metahub.space/poster/small/${imdbId}/img`;
-    }
+  // Build prioritized candidate image URLs
+  const candidateUrls: string[] = [];
+
+  if (item.poster_path) {
+    const p = getPosterUrl(item.poster_path, "w500", imdbId);
+    if (p && !candidateUrls.includes(p)) candidateUrls.push(p);
   }
 
+  if (imdbId) {
+    const metaPoster = `https://images.metahub.space/poster/small/${imdbId}/img`;
+    if (!candidateUrls.includes(metaPoster)) candidateUrls.push(metaPoster);
+  }
+
+  if (item.backdrop_path) {
+    const b = getBackdropUrl(item.backdrop_path, "w780", imdbId);
+    if (b && !candidateUrls.includes(b)) candidateUrls.push(b);
+  }
+
+  if (imdbId) {
+    const metaBg = `https://images.metahub.space/background/medium/${imdbId}/img`;
+    if (!candidateUrls.includes(metaBg)) candidateUrls.push(metaBg);
+  }
+
+  const cinemaFallback = "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=80";
+  if (!candidateUrls.includes(cinemaFallback)) candidateUrls.push(cinemaFallback);
+
+  const currentPosterUrl = candidateIndex < candidateUrls.length ? candidateUrls[candidateIndex] : null;
+
   const handleImageError = () => {
-    if (!triedMetahub && imdbId && currentPosterUrl !== `https://images.metahub.space/poster/small/${imdbId}/img`) {
-      setTriedMetahub(true);
-    } else {
-      setImgError(true);
-    }
+    setCandidateIndex((prev) => prev + 1);
   };
 
   return (

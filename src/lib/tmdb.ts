@@ -684,7 +684,7 @@ export async function searchCatalog(query: string): Promise<MediaItem[]> {
   );
 }
 
-const TMDB_TO_IMDB: Record<string, string> = {
+export const TMDB_TO_IMDB: Record<string, string> = {
   "157336": "tt0816692", // Interstellar
   "278": "tt0111161",    // The Shawshank Redemption
   "693134": "tt15239678", // Dune: Part Two

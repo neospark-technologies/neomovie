@@ -25,38 +25,132 @@ export function getBackdropUrl(
   return "https://images.unsplash.com/photo-1574267432553-4b4628081c31?auto=format&fit=crop&w=1920&q=80";
 }
 
+export const KNOWN_LIBRARY_METAS: Record<string, { imdbId: string; title: string; type: "movie" | "tv"; year?: string }> = {
+  "rrr": { imdbId: "tt8178634", title: "RRR", type: "movie", year: "2022" },
+  "mercy for none": { imdbId: "tt29650530", title: "Mercy for None", type: "tv", year: "2024" },
+  "3 idiots": { imdbId: "tt1187043", title: "3 Idiots", type: "movie", year: "2009" },
+  "marcelino": { imdbId: "tt0047216", title: "The Miracle of Marcelino", type: "movie", year: "1955" },
+  "drishyam 2": { imdbId: "tt15501640", title: "Drishyam 2", type: "movie", year: "2022" },
+  "drishyam": { imdbId: "tt4430212", title: "Drishyam", type: "movie", year: "2015" },
+  "dark": { imdbId: "tt5753856", title: "Dark", type: "tv", year: "2017" },
+  "lanterns": { imdbId: "tt30325852", title: "Lanterns", type: "tv", year: "2025" },
+  "haq": { imdbId: "tt30825313", title: "Haq", type: "movie", year: "2025" },
+  "titanic": { imdbId: "tt0120338", title: "Titanic", type: "movie", year: "1997" },
+  "bourne ultimatum": { imdbId: "tt0440963", title: "The Bourne Ultimatum", type: "movie", year: "2007" },
+  "bourne supremacy": { imdbId: "tt0372183", title: "The Bourne Supremacy", type: "movie", year: "2004" },
+  "bourne identity": { imdbId: "tt0258438", title: "The Bourne Identity", type: "movie", year: "2002" },
+  "joker": { imdbId: "tt7286456", title: "Joker", type: "movie", year: "2019" },
+  "friends": { imdbId: "tt0108778", title: "Friends", type: "tv", year: "1994" },
+  "interstellar": { imdbId: "tt0816692", title: "Interstellar", type: "movie", year: "2014" },
+  "see": { imdbId: "tt7949218", title: "See", type: "tv", year: "2019" },
+  "big bang theory": { imdbId: "tt0898266", title: "The Big Bang Theory", type: "tv", year: "2007" },
+  "queen of tears": { imdbId: "tt28531742", title: "Queen of Tears", type: "tv", year: "2024" },
+  "escape from new york": { imdbId: "tt0082340", title: "Escape from New York", type: "movie", year: "1981" },
+  "12 monkeys": { imdbId: "tt0114746", title: "12 Monkeys", type: "movie", year: "1995" },
+  "snowpiercer": { imdbId: "tt1706593", title: "Snowpiercer", type: "movie", year: "2013" },
+  "supernatural": { imdbId: "tt0460681", title: "Supernatural", type: "tv", year: "2005" },
+  "simpsons": { imdbId: "tt0096697", title: "The Simpsons", type: "tv", year: "1989" },
+  "spider-man brand new day": { imdbId: "tt22084616", title: "Spider-Man: Brand New Day", type: "movie", year: "2026" },
+  "spider man brand new day": { imdbId: "tt22084616", title: "Spider-Man: Brand New Day", type: "movie", year: "2026" },
+  "house of cards": { imdbId: "tt1856010", title: "House of Cards", type: "tv", year: "2013" },
+  "white lotus": { imdbId: "tt13406094", title: "The White Lotus", type: "tv", year: "2021" },
+  "the k2": { imdbId: "tt5974030", title: "The K2", type: "tv", year: "2016" },
+  "order of the phoenix": { imdbId: "tt0373889", title: "Harry Potter and the Order of the Phoenix", type: "movie", year: "2007" },
+  "ordine della fenice": { imdbId: "tt0373889", title: "Harry Potter and the Order of the Phoenix", type: "movie", year: "2007" },
+  "goblet of fire": { imdbId: "tt0330373", title: "Harry Potter and the Goblet of Fire", type: "movie", year: "2005" },
+  "calice di fuoco": { imdbId: "tt0330373", title: "Harry Potter and the Goblet of Fire", type: "movie", year: "2005" },
+  "prisoner of azkaban": { imdbId: "tt0304141", title: "Harry Potter and the Prisoner of Azkaban", type: "movie", year: "2004" },
+  "principe mezzosangue": { imdbId: "tt0417741", title: "Harry Potter and the Half-Blood Prince", type: "movie", year: "2009" },
+  "chhorii": { imdbId: "tt12431792", title: "Chhorii", type: "movie", year: "2021" },
+  "kumari": { imdbId: "tt15469902", title: "Kumari", type: "movie", year: "2022" },
+  "chathuram": { imdbId: "tt15469792", title: "Chathuram", type: "movie", year: "2022" },
+  "pradhama drishtiya kuttakkar": { imdbId: "tt33423455", title: "Pradhama Drishtiya Kuttakkar", type: "movie", year: "2026" },
+  "when life gives you tangerines": { imdbId: "tt26442654", title: "When Life Gives You Tangerines", type: "tv", year: "2025" },
+  "the medium": { imdbId: "tt13446294", title: "The Medium", type: "movie", year: "2021" },
+  "uprising": { imdbId: "tt28531742", title: "The Uprising", type: "movie", year: "2026" },
+  "dive into you": { imdbId: "tt27050858", title: "Dive Into You", type: "movie", year: "2025" },
+  "bethlehem kudumba unit": { imdbId: "tt33423455", title: "Bethlehem Kudumba Unit", type: "movie", year: "2026" },
+  "lokah": { imdbId: "tt33423455", title: "Lokah Chapter 1", type: "movie", year: "2025" },
+  "delitto passionale": { imdbId: "tt0109591", title: "Delitto passionale", type: "movie", year: "1994" },
+  "love hypothesis": { imdbId: "tt22084616", title: "The Love Hypothesis", type: "movie", year: "2026" },
+  "unabomber": { imdbId: "tt5618256", title: "Manhunt: Unabomber", type: "tv", year: "2017" }
+};
+
+export function resolveLibraryMeta(rawName: string, description?: string): {
+  title: string;
+  year: string;
+  imdbId?: string;
+  mediaType: "movie" | "tv" | "anime" | "series";
+  poster: string;
+  backdrop: string;
+  is4k: boolean;
+} {
+  let raw = (rawName || "").replace(/^www\.[a-z0-9.-]+\s*-\s*/i, "").replace(/www\.[a-z0-9.-]+\s*/gi, "").trim();
+  const yearMatch = raw.match(/\b(19\d\d|20\d\d)\b/);
+  const detectedYear = yearMatch ? yearMatch[1] : "2026";
+  const isSeries = /s\d+e\d+|s\d+|season\s*\d+/i.test(raw);
+  const is4k = /4k|2160p/i.test(raw) || /4k/i.test(description || "");
+
+  const cleanTitle = raw
+    .replace(/[._]/g, " ")
+    .replace(/\b(1080p|720p|2160p|4k|uhd|bluray|brrip|webrip|web-dl|web|dvdrip|x264|x265|hevc|aac|dts|ddp|flac|atmos|repack|proper|etrg|yify|rarbg|galaxy)\b.*/gi, "")
+    .trim() || raw;
+
+  const normalized = cleanTitle.toLowerCase();
+  for (const [key, meta] of Object.entries(KNOWN_LIBRARY_METAS)) {
+    if (normalized.includes(key)) {
+      return {
+        title: meta.title,
+        year: meta.year || detectedYear,
+        imdbId: meta.imdbId,
+        mediaType: meta.type || (isSeries ? "tv" : "movie"),
+        poster: `https://images.metahub.space/poster/small/${meta.imdbId}/img`,
+        backdrop: `https://images.metahub.space/background/medium/${meta.imdbId}/img`,
+        is4k,
+      };
+    }
+  }
+
+  return {
+    title: cleanTitle,
+    year: detectedYear,
+    imdbId: undefined,
+    mediaType: isSeries ? "tv" : "movie",
+    poster: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=80",
+    backdrop: "https://images.unsplash.com/photo-1574267432553-4b4628081c31?auto=format&fit=crop&w=1920&q=80",
+    is4k,
+  };
+}
+
 export async function getTorboxItems(): Promise<MediaItem[]> {
   const baseUrl = process.env.AIOSTREAMS_BASE_URL?.trim();
   if (!baseUrl) return [];
   try {
     const catalogUrl = `${baseUrl.replace(/\/manifest\.json$/, "")}/catalog/library/ae7791b.aiostreams::library.torbox.json`;
-    const res = await fetch(catalogUrl, { next: { revalidate: 600 } });
+    const res = await fetch(catalogUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        "Accept": "application/json",
+      },
+      signal: AbortSignal.timeout(10000),
+      next: { revalidate: 600 },
+    });
     if (!res.ok) return [];
     const data = await res.json();
     return (data.metas || []).map((m: any) => {
-      let rawTitle = m.name || "Cloud Media";
-      rawTitle = rawTitle.replace(/^www\.[a-z0-9.-]+\s*-\s*/i, "").trim();
-      const yearMatch = rawTitle.match(/\b(19\d\d|20\d\d)\b/);
-      const year = yearMatch ? yearMatch[1] : "2026";
-      const is4k = /4k|2160p/i.test(rawTitle) || /4k/i.test(m.description || "");
-
-      const cleanTitle = rawTitle
-        .replace(/[._]/g, " ")
-        .replace(/\b(1080p|720p|2160p|4k|uhd|bluray|brrip|webrip|web-dl|web|dvdrip|x264|x265|hevc|aac|dts|ddp|flac|atmos|repack|proper|etrg|yify|rarbg|galaxy)\b.*/gi, "")
-        .trim() || rawTitle;
-
+      const resolved = resolveLibraryMeta(m.name || "", m.description);
       return {
         id: m.id,
-        title: cleanTitle,
+        title: resolved.title,
         overview: `${m.description || "TorBox Cloud Stream"}. Direct debrid playback from your personal cloud library.`,
-        poster_path: m.poster || null,
-        backdrop_path: m.background || null,
-        release_date: `${year}-01-01`,
-        vote_average: is4k ? 9.5 : 8.8,
-        media_type: "movie",
-        imdb_id: m.id,
+        poster_path: m.poster || resolved.poster,
+        backdrop_path: m.background || resolved.backdrop,
+        release_date: `${resolved.year}-01-01`,
+        vote_average: resolved.is4k ? 9.5 : 8.8,
+        media_type: resolved.mediaType,
+        imdb_id: resolved.imdbId || m.id,
         tagline: m.description,
-        genres: [{ id: 999, name: "Cloud Library" }, { id: 998, name: is4k ? "4K Debrid" : "HD" }],
+        genres: [{ id: 999, name: "Cloud Library" }, { id: 998, name: resolved.is4k ? "4K Debrid" : "HD" }],
       };
     });
   } catch (e) {
@@ -749,26 +843,26 @@ export async function getMediaDetails(id: string | number, type: "movie" | "tv" 
     const baseUrl = process.env.AIOSTREAMS_BASE_URL?.trim();
     if (baseUrl) {
       try {
-        const res = await fetch(`${baseUrl.replace(/\/manifest\.json$/, "")}/meta/library/${strId}.json`);
+        const res = await fetch(`${baseUrl.replace(/\/manifest\.json$/, "")}/meta/library/${strId}.json`, {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+            "Accept": "application/json",
+          },
+          signal: AbortSignal.timeout(10000),
+        });
         if (res.ok) {
           const data = await res.json();
           if (data?.meta) {
-            let rawTitle = data.meta.name || "Cloud Media";
-            rawTitle = rawTitle.replace(/^www\.[a-z0-9.-]+\s*-\s*/i, "").trim();
-            const cleanTitle = rawTitle
-              .replace(/[._]/g, " ")
-              .replace(/\b(1080p|720p|2160p|4k|uhd|bluray|brrip|webrip|web-dl|web|dvdrip|x264|x265|hevc|aac|dts|ddp|flac|atmos|repack|proper|etrg|yify|rarbg|galaxy)\b.*/gi, "")
-              .trim() || rawTitle;
-
+            const resolved = resolveLibraryMeta(data.meta.name || "", data.meta.description);
             return {
               id: data.meta.id,
-              title: cleanTitle,
+              title: resolved.title,
               overview: data.meta.description || "Direct cached stream from your personal cloud library.",
-              poster_path: data.meta.poster || null,
-              backdrop_path: data.meta.background || null,
-              vote_average: 9.0,
-              media_type: type,
-              imdb_id: data.meta.id,
+              poster_path: data.meta.poster || resolved.poster,
+              backdrop_path: data.meta.background || resolved.backdrop,
+              vote_average: resolved.is4k ? 9.5 : 9.0,
+              media_type: resolved.mediaType,
+              imdb_id: resolved.imdbId || data.meta.id,
               tagline: data.meta.description,
             };
           }
